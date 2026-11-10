@@ -40,6 +40,7 @@ apt-get install -y nomad consul
 
 log "Writing lab configs (single-node dev setup, NOT for production)"
 mkdir -p /etc/nomad.d /etc/consul.d /opt/nomad/data /opt/consul/data
+chown -R consul:consul /opt/consul/data
 
 cat > /etc/consul.d/consul.hcl <<'HCL'
 datacenter = "lab"
@@ -71,7 +72,7 @@ consul {
 
 plugin "docker" {
   config {
-    allow_privileges = false
+    allow_privileged = false
   }
 }
 HCL
