@@ -1,0 +1,55 @@
+name: build-and-deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Runs on the self-hosted runner installed on the lab VM, because
+# GitHub-hosted runners cannot reach the lab registry, Nomad or Consul.
+env:
+  REGISTRY: localhost:5000
+  IMAGE_NAME: demo
+  # Never :latest. A new SHA is what makes Nomad see a diff and start a deployment.
+  IMAGE_TAG: ${{ github.sha }}
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: [self-hosted, lab]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        working-directory: app
+        run: node --test
+
+  build-and-push:
+    needs: test
+    runs-on: [self-hosted, lab]
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image reference
+        id: meta
+        run: echo "image=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg APP_VERSION="${IMAGE_TAG::7}" \
+            -t "${{ steps.meta.outputs.image }}" \
+            app
+
+      - name: Push image to lab registry
+        run: docker push "${{ steps.meta.outputs.image }}"
+
+      - name: Verify image is in the registry
+        run: curl -fsS "http://${REGISTRY}/v2/${IMAGE_NAME}/tags/list" | grep -q "${IMAGE_TAG}"
+
+  # Week 2: add a `deploy` job here that runs scripts/deploy.sh and waits for the
+  # Nomad deployment to finish (fails the run if the rollout fails).

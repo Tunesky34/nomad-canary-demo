@@ -1,0 +1,12 @@
+{
+  "name": "canary-demo",
+  "version": "1.0.0",
+  "description": "Tiny demo service for the Nomad canary + auto-rollback pipeline",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
