@@ -13,7 +13,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-RUNNER_VERSION="${RUNNER_VERSION:-2.321.0}"
+RUNNER_VERSION="${RUNNER_VERSION:-2.329.0}"
 RUNNER_USER="${RUNNER_USER:-${SUDO_USER:-ubuntu}}"
 RUNNER_DIR="${RUNNER_DIR:-/opt/actions-runner}"
 
@@ -90,10 +90,14 @@ if [[ -n "${RUNNER_URL:-}" && -n "${RUNNER_TOKEN:-}" ]]; then
   log "Registering GitHub Actions self-hosted runner"
   mkdir -p "$RUNNER_DIR"
   cd "$RUNNER_DIR"
-  if [[ ! -f config.sh ]]; then
+  if [[ ! -f .runner-version || "$(cat .runner-version)" != "$RUNNER_VERSION" ]]; then
+    if [[ -f svc.sh ]]; then
+      ./svc.sh stop || true
+    fi
     curl -fsSL -o runner.tar.gz \
       "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
     tar xzf runner.tar.gz && rm runner.tar.gz
+    printf '%s\n' "$RUNNER_VERSION" > .runner-version
   fi
   chown -R "$RUNNER_USER":"$RUNNER_USER" "$RUNNER_DIR"
   sudo -u "$RUNNER_USER" ./config.sh --unattended --replace \
