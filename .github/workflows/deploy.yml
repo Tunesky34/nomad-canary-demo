@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: [self-hosted, lab]
+    runs-on: [self-hosted, new]
     steps:
       - uses: actions/checkout@v4
       - name: App unit tests
