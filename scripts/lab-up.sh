@@ -54,7 +54,7 @@ HCL
 cat > /etc/nomad.d/nomad.hcl <<'HCL'
 datacenter = "lab"
 data_dir   = "/opt/nomad/data"
-bind_addr  = "0.0.0.0"
+bind_addr  = "127.0.0.1"
 
 server {
   enabled          = true
@@ -63,6 +63,8 @@ server {
 
 client {
   enabled = true
+  # Loopback keeps service addresses stable when a laptop's DHCP address changes.
+  network_interface = "lo"
 }
 
 consul {
@@ -76,8 +78,12 @@ plugin "docker" {
 }
 HCL
 
-systemctl enable --now consul
-systemctl enable --now nomad
+log "Validating Nomad config"
+nomad config validate /etc/nomad.d/nomad.hcl
+
+systemctl enable consul nomad
+systemctl restart consul
+systemctl restart nomad
 
 log "Starting lab registry on localhost:5000"
 if ! docker ps -a --format '{{.Names}}' | grep -qx lab-registry; then
@@ -104,9 +110,20 @@ else
   log "Skipping runner registration (set RUNNER_URL and RUNNER_TOKEN to enable)"
 fi
 
-log "Checking everything is up"
-sleep 5
-curl -fsS http://127.0.0.1:5000/v2/ >/dev/null && echo "registry: ok"
+log "Waiting for Nomad and Consul to answer"
+wait_for() {  # name url
+  for _ in $(seq 1 60); do
+    if curl -fsS "$2" >/dev/null 2>&1; then echo "$1: ok"; return 0; fi
+    sleep 1
+  done
+  echo "ERROR: $1 did not come up at $2" >&2
+  systemctl status "$3" --no-pager -l 2>&1 | tail -15 >&2 || true
+  journalctl -u "$3" -n 40 --no-pager >&2 || true
+  return 1
+}
+wait_for registry http://127.0.0.1:5000/v2/ docker
+wait_for consul   http://127.0.0.1:8500/v1/status/leader consul
+wait_for nomad    http://127.0.0.1:4646/v1/status/leader nomad
 consul members || true
 nomad node status || true
 
