@@ -3,6 +3,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$PWD/tests/fake-nomad:$PATH"
+# Never write test output into a real GitHub job summary or timing file.
+unset GITHUB_STEP_SUMMARY TIMING_FILE
 export POLL_INTERVAL=0 REVERT_WAIT=5 DEPLOYMENT_APPEAR_TIMEOUT=5 DEPLOY_TIMEOUT=20
 pass=0; fail=0
 
@@ -22,6 +24,12 @@ run_case "failed rollout exits 1 (CI goes red)"     fail     1 "ROLLOUT FAILED"
 run_case "failed rollout reports the auto-revert"   fail     1 "auto-revert deployment dep-revert: successful"
 run_case "after revert the old image is configured" fail     1 "image now configured: good-image"
 run_case "unchanged spec exits 0 with no deploy"    nochange 0 "nothing to deploy"
+
+# The summary writer itself: goes to a temp file, never the real one.
+export FAKE_DIR; FAKE_DIR=$(mktemp -d); sumfile=$(mktemp)
+FAKE_SCENARIO=fail IMAGE=img-new GITHUB_STEP_SUMMARY="$sumfile" ./scripts/deploy.sh >/dev/null 2>&1
+if grep -q "Deploy FAILED for" "$sumfile"; then echo "PASS  job summary is written when GITHUB_STEP_SUMMARY is set"; pass=$((pass + 1))
+else echo "FAIL  job summary not written"; fail=$((fail + 1)); fi
 
 echo; echo "passed=$pass failed=$fail"
 [[ $fail -eq 0 ]]
