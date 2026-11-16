@@ -31,7 +31,7 @@ jobs:
 
   build-and-push:
     needs: test
-    runs-on: [self-hosted, lab]
+    runs-on: [self-hosted, new]
     outputs:
       image: ${{ steps.meta.outputs.image }}
     steps:
@@ -56,7 +56,7 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: [self-hosted, lab]
+    runs-on: [self-hosted, new]
     steps:
       - uses: actions/checkout@v4
 
