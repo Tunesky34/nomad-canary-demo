@@ -13,6 +13,10 @@ env:
   # Never :latest. A new SHA is what makes Nomad see a diff and start a deployment.
   IMAGE_TAG: ${{ github.sha }}
 
+# Least privilege: none of these jobs needs to write to the repository.
+permissions:
+  contents: read
+
 # One deploy at a time: two overlapping rollouts would fight over the same job.
 concurrency:
   group: deploy-main
@@ -23,6 +27,8 @@ jobs:
     runs-on: [self-hosted, lab]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: App unit tests
         working-directory: app
         run: node --test
@@ -36,20 +42,26 @@ jobs:
       image: ${{ steps.meta.outputs.image }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Compute image reference
         id: meta
         run: echo "image=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build image
+        env:
+          IMAGE: ${{ steps.meta.outputs.image }}
         run: |
           docker build \
             --build-arg APP_VERSION="${IMAGE_TAG::7}" \
-            -t "${{ steps.meta.outputs.image }}" \
+            -t "$IMAGE" \
             app
 
       - name: Push image to lab registry
-        run: docker push "${{ steps.meta.outputs.image }}"
+        env:
+          IMAGE: ${{ steps.meta.outputs.image }}
+        run: docker push "$IMAGE"
 
       - name: Verify image is in the registry
         run: curl -fsS "http://${REGISTRY}/v2/${IMAGE_NAME}/tags/list" | grep -q "${IMAGE_TAG}"
@@ -59,6 +71,8 @@ jobs:
     runs-on: [self-hosted, lab]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       # deploy.env holds the demo's failure switches (FAIL_HEALTH etc). Committing
       # FAIL_HEALTH=true to main is how the bad deploy is demonstrated.

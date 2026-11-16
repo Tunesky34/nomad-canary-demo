@@ -35,7 +35,7 @@ log "Installing Nomad and Consul (HashiCorp apt repo)"
 curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor --yes -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
   > /etc/apt/sources.list.d/hashicorp.list
-apt-get update -y
+apt-get update -y || true
 apt-get install -y nomad consul
 
 log "Writing lab configs (single-node dev setup, NOT for production)"
@@ -112,8 +112,8 @@ start_service() {
 mkdir -p /etc/systemd/system/consul.service.d
 printf '[Service]\nType=simple\n' > /etc/systemd/system/consul.service.d/lab.conf
 systemctl daemon-reload
+
 start_service consul
-start_service nomad
 start_service nomad
 
 log "Starting lab registry on localhost:5000"
