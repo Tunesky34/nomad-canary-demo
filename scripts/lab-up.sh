@@ -71,7 +71,7 @@ consul {
 
 plugin "docker" {
   config {
-    allow_privileges = false
+    allow_privileged = false
   }
 }
 HCL
