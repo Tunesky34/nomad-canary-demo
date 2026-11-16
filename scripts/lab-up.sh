@@ -30,12 +30,12 @@ fi
 usermod -aG docker "$RUNNER_USER" || true
 
 log "Installing Nomad and Consul (HashiCorp apt repo)"
-if [[ ! -f /usr/share/keyrings/hashicorp-archive-keyring.gpg ]]; then
-  curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
-    > /etc/apt/sources.list.d/hashicorp.list
-  apt-get update -y
-fi
+# Refresh the signing key on every run: HashiCorp rotates it, and a stale key makes
+# `apt update` fail with NO_PUBKEY for this repo.
+curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor --yes -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+  > /etc/apt/sources.list.d/hashicorp.list
+apt-get update -y
 apt-get install -y nomad consul
 
 log "Writing lab configs (single-node dev setup, NOT for production)"
@@ -55,6 +55,14 @@ cat > /etc/nomad.d/nomad.hcl <<'HCL'
 datacenter = "lab"
 data_dir   = "/opt/nomad/data"
 bind_addr  = "127.0.0.1"
+
+# Required when binding to loopback: Nomad refuses to default the advertise address
+# to localhost ("Defaulting advertise to localhost is unsafe").
+advertise {
+  http = "127.0.0.1"
+  rpc  = "127.0.0.1"
+  serf = "127.0.0.1"
+}
 
 server {
   enabled          = true
@@ -78,12 +86,35 @@ plugin "docker" {
 }
 HCL
 
+# The HashiCorp package runs Consul as user "consul"; it must own its data and config.
+if id consul >/dev/null 2>&1; then
+  chown -R consul:consul /opt/consul /etc/consul.d
+fi
+
 log "Validating Nomad config"
 nomad config validate /etc/nomad.d/nomad.hcl
 
-systemctl enable consul nomad
-systemctl restart consul
-systemctl restart nomad
+start_service() {
+  systemctl enable "$1" >/dev/null 2>&1 || true
+  # A service that crash-looped is rate-limited by systemd ("start request repeated
+  # too quickly") until its failed state is cleared.
+  systemctl reset-failed "$1" >/dev/null 2>&1 || true
+  if ! systemctl restart "$1"; then
+    echo "ERROR: $1 failed to start. Last log lines:" >&2
+    journalctl -u "$1" -n 40 --no-pager >&2 || true
+    exit 1
+  fi
+}
+# The packaged unit is Type=notify and, on a single-node lab server, systemd can time out
+# waiting for Consul's "ready" signal even though Consul runs fine. Skip that handshake;
+# the wait_for checks below verify the real HTTP endpoint instead. (Drop-in, so package
+# upgrades do not overwrite it.)
+mkdir -p /etc/systemd/system/consul.service.d
+printf '[Service]\nType=simple\n' > /etc/systemd/system/consul.service.d/lab.conf
+systemctl daemon-reload
+start_service consul
+start_service nomad
+start_service nomad
 
 log "Starting lab registry on localhost:5000"
 if ! docker ps -a --format '{{.Names}}' | grep -qx lab-registry; then

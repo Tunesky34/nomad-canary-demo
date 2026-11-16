@@ -86,6 +86,17 @@ wait_for_revert() {
   return 0
 }
 
+# ---- preflight: is a Nomad agent reachable from THIS machine? ------------
+if ! preflight_err=$(nomad status 2>&1 >/dev/null); then
+  log "ERROR: cannot reach Nomad at $NOMAD_ADDR"
+  printf '%s\n' "$preflight_err" | sed 's/^/        /'
+  log "       Is the agent running on the same machine as this runner? Try:"
+  log "         systemctl status nomad ; journalctl -u nomad -n 50 --no-pager"
+  log "         curl -s $NOMAD_ADDR/v1/status/leader"
+  log "       If Nomad runs elsewhere, set NOMAD_ADDR (env on the deploy step)."
+  exit 2
+fi
+
 # ---- submit -------------------------------------------------------------
 log "validating $JOB_FILE"
 nomad job validate "${VARS[@]}" "$JOB_FILE" >/dev/null

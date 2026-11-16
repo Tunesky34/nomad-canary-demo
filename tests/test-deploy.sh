@@ -23,6 +23,7 @@ run_case "successful rollout exits 0"               success  0 "ROLLOUT SUCCESSF
 run_case "failed rollout exits 1 (CI goes red)"     fail     1 "ROLLOUT FAILED"
 run_case "failed rollout reports the auto-revert"   fail     1 "auto-revert deployment dep-revert: successful"
 run_case "after revert the old image is configured" fail     1 "image now configured: good-image"
+run_case "unreachable nomad exits 2 with a clear message" down 2 "cannot reach Nomad"
 run_case "unchanged spec exits 0 with no deploy"    nochange 0 "nothing to deploy"
 
 # The summary writer itself: goes to a temp file, never the real one.

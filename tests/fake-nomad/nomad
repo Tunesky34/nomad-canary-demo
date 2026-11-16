@@ -9,6 +9,7 @@ put() { printf '%s' "$2" > "$D/$1"; }
 cmd="${1:-} ${2:-}"
 
 case "$cmd" in
+  "status "*) if [[ "$SCEN" == down ]]; then echo 'Error querying jobs: dial tcp 127.0.0.1:4646: connect: connection refused' >&2; exit 1; fi ;;
   "job validate") exit 0 ;;
 
   "job run")

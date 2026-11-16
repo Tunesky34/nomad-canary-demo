@@ -46,6 +46,22 @@ Installs Docker, Nomad, Consul (single-node lab config), a `registry:2` on
 `localhost:5000`, and a self-hosted runner labelled `lab`. Log out/in afterwards so your
 user gets the docker group. GitHub-hosted runners cannot reach the lab, hence self-hosted.
 
+## Troubleshooting the lab
+
+```bash
+systemctl status nomad --no-pager -l ; journalctl -u nomad -n 50 --no-pager
+curl -s http://127.0.0.1:4646/v1/status/leader      # prints "127.0.0.1:4647" when healthy
+nomad node status -self | grep -iE 'status|docker'   # node ready, docker driver healthy
+```
+
+- **Nomad restarts in a loop**: the journal names the bad config line. Fix
+  `/etc/nomad.d/nomad.hcl`, then `sudo systemctl restart nomad`. Re-running `lab-up.sh`
+  rewrites the config and restarts both services.
+- **Leader/raft errors after an IP change** (lab only, wipes Nomad state):
+  `sudo systemctl stop nomad && sudo rm -rf /opt/nomad/data/* && sudo systemctl start nomad`
+- The Nomad UI is on loopback only. From another machine use
+  `ssh -L 4646:localhost:4646 <vm>`.
+
 ## Verify
 
 ```bash
