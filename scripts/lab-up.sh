@@ -25,14 +25,14 @@ apt-get install -y ca-certificates curl gnupg lsb-release unzip jq
 
 log "Installing Docker"
 if ! command -v docker >/dev/null; then
-  curl -fsSL https://get.docker.com | sh
+  curl --proto '=https' --proto-redir '=https' -fsSL https://get.docker.com | sh
 fi
 usermod -aG docker "$RUNNER_USER" || true
 
 log "Installing Nomad and Consul (HashiCorp apt repo)"
 # Refresh the signing key on every run: HashiCorp rotates it, and a stale key makes
 # `apt update` fail with NO_PUBKEY for this repo.
-curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor --yes -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+curl --proto '=https' --proto-redir '=https' -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor --yes -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
   > /etc/apt/sources.list.d/hashicorp.list
 apt-get update -y || true
@@ -128,7 +128,7 @@ if [[ -n "${RUNNER_URL:-}" && -n "${RUNNER_TOKEN:-}" ]]; then
   mkdir -p "$RUNNER_DIR"
   cd "$RUNNER_DIR"
   if [[ ! -f config.sh ]]; then
-    curl -fsSL -o runner.tar.gz \
+    curl --proto '=https' --proto-redir '=https' -fsSL -o runner.tar.gz \
       "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
     tar xzf runner.tar.gz && rm runner.tar.gz
   fi
