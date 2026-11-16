@@ -1,0 +1,7 @@
+[
+ {"Job":{"ID":"good-svc","Type":"service","TaskGroups":[{"Name":"web","Count":2,"Update":{"Canary":1,"AutoRevert":true,"AutoPromote":true,"HealthCheck":"checks","MinHealthyTime":10000000000,"HealthyDeadline":45000000000,"ProgressDeadline":90000000000}}]}},
+ {"Job":{"ID":"risky-svc","Type":"service","TaskGroups":[{"Name":"api","Count":1,"Update":{"Canary":0,"AutoRevert":false,"HealthCheck":"task_states","MinHealthyTime":10000000000,"HealthyDeadline":300000000000,"ProgressDeadline":0}}]}},
+ {"Job":{"ID":"job-level","Type":"service","Update":{"Canary":1,"AutoRevert":true,"HealthCheck":"checks","ProgressDeadline":600000000000},"TaskGroups":[{"Name":"g","Count":3}]}},
+ {"Job":{"ID":"no-update","Type":"service","TaskGroups":[{"Name":"g","Count":2}]}},
+ {"Job":{"ID":"batch-job","Type":"batch","TaskGroups":[{"Name":"g","Count":1}]}}
+]
