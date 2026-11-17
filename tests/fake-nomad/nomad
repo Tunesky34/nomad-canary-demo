@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Minimal fake `nomad` CLI used ONLY to test scripts/deploy.sh logic without a cluster.
+# Scenarios (FAKE_SCENARIO): success | fail | nochange
+set -euo pipefail
+D="${FAKE_DIR:?}"
+SCEN="${FAKE_SCENARIO:-success}"
+get() { cat "$D/$1" 2>/dev/null || printf '%s' "${2:-}"; }
+put() { printf '%s' "$2" > "$D/$1"; }
+cmd="${1:-} ${2:-}"
+
+case "$cmd" in
+  "status "*) if [[ "$SCEN" == down ]]; then echo 'Error querying jobs: dial tcp 127.0.0.1:4646: connect: connection refused' >&2; exit 1; fi ;;
+  "job validate") exit 0 ;;
+
+  "job run")
+    img=""
+    for a in "$@"; do [[ "$a" == image=* ]] && img="${a#image=}"; done
+    [[ "$SCEN" == nochange ]] && exit 0
+    v=$(get version 1)
+    put prev_image "$(get image good-image)"
+    put version $((v + 1)); put image "$img"
+    put main_dep_version $((v + 1)); put main_status running; put polls 0
+    rm -f "$D/revert_version"
+    echo "Evaluation ID: fake" ;;
+
+  "job inspect")
+    if [[ -f "$D/revert_version" ]]; then v=$(cat "$D/revert_version"); img=$(get prev_image)
+    else v=$(get version 1); img=$(get image good-image); fi
+    jq -n --argjson v "$v" --arg i "$img" '{Job:{Version:$v,TaskGroups:[{Tasks:[{Config:{image:$i}}]}]}}' ;;
+
+  "job deployments")
+    mv=$(get main_dep_version 0)
+    list=$(jq -n --argjson v "$mv" --arg s "$(get main_status running)" \
+      '[{ID:"dep-main",JobVersion:$v,Status:$s,CreateIndex:$v}]')
+    if [[ -f "$D/revert_version" ]]; then
+      rv=$(cat "$D/revert_version")
+      list=$(echo "$list" | jq --argjson v "$rv" '. + [{ID:"dep-revert",JobVersion:$v,Status:"successful",CreateIndex:$v}]')
+    fi
+    echo "$list" ;;
+
+  "deployment status")
+    id="${*: -1}"; json=0
+    for a in "$@"; do [[ "$a" == "-json" ]] && json=1; done
+    if [[ "$id" == dep-revert ]]; then s=successful
+    else
+      n=$(get polls 0); put polls $((n + 1))
+      if (( n < 2 )); then s=running
+      elif [[ "$SCEN" == fail ]]; then
+        s=failed
+        [[ -f "$D/revert_version" ]] || put revert_version $(( $(get version 1) + 1 ))
+      else s=successful; fi
+      put main_status "$s"
+    fi
+    if (( json )); then jq -n --arg s "$s" --arg id "$id" '{ID:$id,Status:$s,StatusDescription:"fake description"}'
+    else printf 'ID     = %s\nStatus = %s\n' "$id" "$s"; fi ;;
+
+  "job status") echo "(fake job status)" ;;
+  "job allocs") echo "[]" ;;
+  *) echo "(fake nomad: $*)" ;;
+esac
