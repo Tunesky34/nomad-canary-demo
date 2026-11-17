@@ -1,0 +1,44 @@
+ID                  = 6428d170-2593-dddf-985b-e1c9e1c9dba6
+Eval ID             = 4c09f504
+Name                = demo.web[0]
+Node ID             = e4748b4d
+Node Name           = tunesky-HP-EliteBook-840-G3
+Job ID              = demo
+Job Version         = 7
+Client Status       = complete
+Client Description  = All tasks have completed
+Desired Status      = stop
+Desired Description = alloc not needed due to job update
+Created             = 2m3s ago
+Modified            = 1m16s ago
+Deployment ID       = 59fcf419
+Deployment Health   = unhealthy
+Canary              = true
+
+Allocation Addresses:
+Label  Dynamic  Address
+*http  yes      127.0.0.1:25403 -> 8080
+
+Task "app" is "dead"
+Task Resources:
+CPU      Memory   Disk     Addresses
+100 MHz  128 MiB  300 MiB
+
+Task Events:
+Started At     = 2026-11-17T09:31:49Z
+Finished At    = 2026-11-17T09:32:33Z
+Total Restarts = 0
+Last Restart   = N/A
+
+Recent Events:
+Time                       Type             Description
+2026-11-17T10:32:33+01:00  Killed           Task successfully killed
+2026-11-17T10:32:33+01:00  Terminated       Exit Code: 0
+2026-11-17T10:32:32+01:00  Killing          Sent interrupt. Waiting 10s before force killing
+2026-11-17T10:32:32+01:00  Alloc Unhealthy  Task not running for min_healthy_time of 10s by healthy_deadline of 45s
+2026-11-17T10:31:49+01:00  Started          Task started by client
+2026-11-17T10:31:47+01:00  Task Setup       Building Task Directory
+2026-11-17T10:31:47+01:00  Received         Task received by client
+
+
+==> View allocation details in the Web UI: http://127.0.0.1:4646/ui/allocations/6428d170-2593-dddf-985b-e1c9e1c9dba6

@@ -1,0 +1,33 @@
+ID            = demo
+Name          = demo
+Submit Date   = 2026-11-16T10:23:29+01:00
+Type          = service
+Priority      = 50
+Datacenters   = lab
+Namespace     = default
+Node Pool     = default
+Status        = running
+Periodic      = false
+Parameterized = false
+
+Summary
+Task Group  Queued  Starting  Running  Failed  Complete  Lost  Unknown
+web         0       0         2        0       10        0     0
+
+Latest Deployment
+ID          = 20cc9ca2
+Status      = successful
+Description = Deployment completed successfully
+
+Deployed
+Task Group  Auto Revert  Desired  Placed  Healthy  Unhealthy  Progress Deadline
+web         true         2        2       2        0          2026-11-17T10:34:13+01:00
+
+Allocations
+ID        Node ID   Task Group  Version  Desired  Status    Created    Modified
+6428d170  e4748b4d  web         7        stop     complete  2m2s ago   1m15s ago
+53b4266c  e4748b4d  web         8        run      running   1d10m ago  1m5s ago
+7ae0f2ad  e4748b4d  web         8        run      running   1d10m ago  1m5s ago
+
+
+==> View job details and metrics in the Web UI: http://127.0.0.1:4646/ui/jobs/demo@default

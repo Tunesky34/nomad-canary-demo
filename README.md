@@ -13,7 +13,7 @@ that breaks health checks is rolled back by Nomad on its own (`auto_revert`).
 |------|-------------|-------|
 | 1 | Service with `/health`, Dockerfile, Actions build + push to lab registry | done |
 | 2 | Nomad job (`canary = 1`, `auto_revert = true`, Consul checks) + deploy step that waits for the rollout | done, **verify in your lab** |
-| 3 | Bad deploy, auto rollback vs manual `nomad job revert`, timed | scripts + demo script ready; **run it and fill `docs/results.md`** |
+| 3 | Bad deploy, auto rollback vs manual `nomad job revert`, timed | done; live run links, evidence, and measured results in `docs/results.md` |
 | 4 | Runbook + `update` block review checklist | `docs/runbook.md`, `docs/update-block-checklist.md` |
 
 ## Layout

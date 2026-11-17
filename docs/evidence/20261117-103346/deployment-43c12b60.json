@@ -1,0 +1,22 @@
+{
+  "ID": "43c12b60-3240-f91e-bf2b-0978c0ea001e",
+  "JobVersion": 6,
+  "Status": "successful",
+  "StatusDescription": "Deployment completed successfully",
+  "TaskGroups": {
+    "web": {
+      "AutoRevert": true,
+      "DesiredCanaries": 1,
+      "DesiredTotal": 2,
+      "HealthyAllocs": 2,
+      "PlacedAllocs": 2,
+      "PlacedCanaries": [
+        "7ae0f2ad-16cb-4ea8-2c02-698b980b3835"
+      ],
+      "ProgressDeadline": 90000000000,
+      "Promoted": true,
+      "RequireProgressBy": "2026-11-17T09:52:30.385867593+01:00",
+      "UnhealthyAllocs": 0
+    }
+  }
+}

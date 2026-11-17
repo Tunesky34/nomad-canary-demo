@@ -1,0 +1,39 @@
+ID                  = 53b4266c-d185-86a6-151a-78d106898a88
+Eval ID             = 8001f277
+Name                = demo.web[1]
+Node ID             = e4748b4d
+Node Name           = tunesky-HP-EliteBook-840-G3
+Job ID              = demo
+Job Version         = 8
+Client Status       = running
+Client Description  = Tasks are running
+Desired Status      = run
+Desired Description = <none>
+Created             = 1d10m ago
+Modified            = 1m6s ago
+Deployment ID       = 20cc9ca2
+Deployment Health   = healthy
+
+Allocation Addresses:
+Label  Dynamic  Address
+*http  yes      127.0.0.1:27536 -> 8080
+
+Task "app" is "running"
+Task Resources:
+CPU      Memory   Disk     Addresses
+100 MHz  128 MiB  300 MiB
+
+Task Events:
+Started At     = 2026-11-16T09:23:47Z
+Finished At    = N/A
+Total Restarts = 0
+Last Restart   = N/A
+
+Recent Events:
+Time                       Type        Description
+2026-11-16T10:23:47+01:00  Started     Task started by client
+2026-11-16T10:23:47+01:00  Task Setup  Building Task Directory
+2026-11-16T10:23:46+01:00  Received    Task received by client
+
+
+==> View allocation details in the Web UI: http://127.0.0.1:4646/ui/allocations/53b4266c-d185-86a6-151a-78d106898a88

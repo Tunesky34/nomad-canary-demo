@@ -1,0 +1,22 @@
+{
+  "ID": "59fcf419-2bbd-7ac0-c34c-c85013e4d208",
+  "JobVersion": 7,
+  "Status": "failed",
+  "StatusDescription": "Failed due to unhealthy allocations - rolling back to job version 6",
+  "TaskGroups": {
+    "web": {
+      "AutoRevert": true,
+      "DesiredCanaries": 1,
+      "DesiredTotal": 2,
+      "HealthyAllocs": 0,
+      "PlacedAllocs": 1,
+      "PlacedCanaries": [
+        "6428d170-2593-dddf-985b-e1c9e1c9dba6"
+      ],
+      "ProgressDeadline": 90000000000,
+      "Promoted": false,
+      "RequireProgressBy": "2026-11-17T10:33:17.140999944+01:00",
+      "UnhealthyAllocs": 1
+    }
+  }
+}
